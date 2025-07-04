@@ -16,9 +16,9 @@
                     @endif
                     <!-- Filtro y búsqueda -->
                     <div class="row align-items-center mb-4">
-                        <div class="col-md-8">
+                        <div class="col-md-6">
                             <form method="GET" action="{{ route('solicitudes') }}" class="d-flex align-items-center">
-                                <div class="mb-3 me-3 d-flex align-items-center">
+                                <div class="me-3 d-flex align-items-center">
                                     <label for="estado" class="form-label me-2">Estado:</label>
                                     <select name="estado" id="estado" class="form-select border border-2 p-2">
                                         <option value="">Todas</option>
@@ -30,14 +30,17 @@
                                         @endforeach
                                     </select>
                                 </div>
-                                <button type="submit" class="btn bg-gradient-dark">Filtrar</button>
+                                <button type="submit" class="btn bg-gradient-dark mt-2">Filtrar</button>
                             </form>
                         </div>
-                        <div class="col-md-4 d-flex justify-content-end">
-                            <div class="input-group input-group-outline">
-                                <label class="form-label">Buscar</label>
-                                <input type="text" id="search-input" class="form-control">
-                            </div>
+                        <div class="col-md-6 d-flex justify-content-end">
+                            <form action="{{ route('solicitudes') }}" method="GET" class="d-flex align-items-center">
+                                <div class="input-group input-group-outline me-3">
+                                    <label class="form-label">Buscar</label>
+                                    <input type="text" id="search-input" name="search" class="form-control">
+                                </div>
+                                <button type="submit" class="btn bg-gradient-info mt-2">Buscar</button>
+                            </form>
                         </div>
                     </div>
                     <!-- Tabla de Solicitudes -->
@@ -469,19 +472,6 @@
                         headers.forEach(h => h.classList.remove('asc', 'desc'));
                         header.classList.toggle('asc', !isAscending);
                         header.classList.toggle('desc', isAscending);
-                    });
-                });
-
-                $('#search-input').on('input', function() {
-                    var searchText = $(this).val().toLowerCase().trim();
-                    $('#solicitudes-table tbody tr').each(function() {
-                        var calle = $(this).find('.hidden-data').text().toLowerCase().trim();
-                        var apellido = $(this).find('td:nth-child(8)').text().toLowerCase().trim();
-                        if (calle.includes(searchText) || apellido.includes(searchText)) {
-                            $(this).show();
-                        } else {
-                            $(this).hide();
-                        }
                     });
                 });
 

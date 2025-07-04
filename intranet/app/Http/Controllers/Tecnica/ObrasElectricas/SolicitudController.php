@@ -33,20 +33,37 @@ class SolicitudController extends Controller
     public function index(Request $request)
     {
         $estadoId = $request->get('estado');
+        $searchTerm = $request->get('search');
 
-        $solicitudes = Solicitud::with(['tipos', 'localidad', 'ultimoEstado.estado'])
-            ->when($estadoId, function ($query) use ($estadoId) {
-                $query->whereHas('ultimoEstado', function ($subQuery) use ($estadoId) {
-                    $subQuery->where('SES_ESTADO_ID', $estadoId)
-                        ->whereRaw('SES_FECHA = (
-                             SELECT MAX(SES_FECHA)
-                             FROM ALUM.dbo.SOLICITUD_ESTADO
-                             WHERE SES_SOLICITUD_ID = SOLICITUD_OBRA_ELECTRICA.SOE_ID
-                         )');
-                });
-            })
-            ->orderBy('SOE_FECHA', 'desc')
-            ->paginate(20);
+        $solicitudes = Solicitud::with(['tipos', 'localidad', 'ultimoEstado.estado']);
+
+        // Aplicar el filtro por estado si se proporciona
+        $solicitudes->when($estadoId, function ($query) use ($estadoId) {
+            $query->whereHas('ultimoEstado', function ($subQuery) use ($estadoId) {
+                $subQuery->where('SES_ESTADO_ID', $estadoId)
+                    ->whereRaw('SES_FECHA = (
+                        SELECT MAX(SES_FECHA)
+                        FROM ALUM.dbo.SOLICITUD_ESTADO
+                        WHERE SES_SOLICITUD_ID = SOLICITUD_OBRA_ELECTRICA.SOE_ID
+                    )');
+            });
+        });
+
+        // Aplicar el filtro de búsqueda si se proporciona
+        $solicitudes->when($searchTerm, function ($query) use ($searchTerm) {
+            $query->where(function ($subQuery) use ($searchTerm) {
+                $subQuery->where('SOE_CALLE', 'like', '%' . $searchTerm . '%')
+                         ->orWhere('SOE_APELLIDO', 'like', '%' . $searchTerm . '%')
+                         ->orWhere('SOE_NOMBRE', 'like', '%' . $searchTerm . '%');
+
+                         if (is_numeric($searchTerm)) {
+                    $subQuery->orWhere('SOE_ID', $searchTerm);
+                }
+            });
+        });
+
+        // Ordenar los resultados y paginarlos
+        $solicitudes = $solicitudes->orderBy('SOE_FECHA', 'desc')->paginate(20);
 
         $estados = Estado::all();
 
